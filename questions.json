@@ -1,0 +1,63 @@
+{
+  "Know Yourself": [
+    "Tell me about yourself.",
+    "Tell me about a project you're working on.",
+    "Give me a detailed explanation about your internship.",
+    "Tell me about your setbacks on projects.",
+    "Tell me about a time when you faced a difficult challenge.",
+    "Tell me about a project you're proud of."
+  ],
+  "Earn Trust, Have Backbone to Disagree and Commit": [
+    "Tell me about a situation where you had a conflict with someone on your team. What was it about? What did you do? How did they react? What was the outcome?",
+    "Tell me about a time when your teammate didn't agree with you. What did you do?",
+    "Received negative feedback from a manager and how you responded."
+  ],
+  "Ownership": [
+    "Give an example of when you saw a peer struggling and decided to step in and help. What was the situation and what actions did you take? What was the outcome?",
+    "Tell me about a time when you earned your teammate's trust.",
+    "Tell me about a time you had to help a team member struggling with a task.",
+    "How would you help a new employee who is facing technical difficulties?",
+    "Tell me about a time when you couldn't meet your deadline.",
+    "Tell me about a time you committed a mistake.",
+    "Have you ever failed at something? What did you learn from it?",
+    "Time when you helped someone grow in their career and it benefited them.",
+    "Time when you helped someone grow but it did not benefit them."
+  ],
+  "Invent and Simplify, Learn and Be Curious": [
+    "Tell me about a time when you invented something.",
+    "Tell me about a time when you came up with a novel solution.",
+    "Tell me about a time when you learned new technologies.",
+    "Tell me about a time when you innovated and exceeded expectations.",
+    "Tell me about a time when you thought of an unpopular idea."
+  ],
+  "Ownership & Customer Obsession": [
+    "Tell me about a time when you went above and beyond your job responsibilities.",
+    "Tell me about a time when you were 75% through a project and realized you had the wrong goal."
+  ],
+  "Think Big": [
+    "Tell me about a time when your team members were not supporting something but you pushed for a more optimal solution.",
+    "Tell me about a time when you pushed back on a decision from management for better long-term benefits.",
+    "Tell me about a time when you failed to meet your commitment."
+  ],
+  "Bias for Action": [
+    "Tell me about a time you were working on a project with tight time constraints.",
+    "Tell me about a time you faced an obstacle and how you overcame it.",
+    "Tell me about a time you had to cut corners to meet a deadline."
+  ],
+  "Are Right a Lot": [
+    "Tell me about a time when you had to make an important decision without any data.",
+    "Tell me about a time when you had to make a choice among a few options but didn’t have time to explore each one.",
+    "Tell me about a time you used judgment to make a decision with limited data.",
+    "Tell me about a time you had to make a tough decision without consulting anybody.",
+    "Tell me about a time you took a risk.",
+    "Tell me about a time you had multiple solutions and had to select the optimal one.",
+    "Tell me about a time when you had to make a decision based on limited information and how it impacted the outcome.",
+    "Tell me about a time you didn’t know something and how you tackled it."
+  ],
+  "Others": [
+    "Tell me about a time when you needed help from someone during a project.",
+    "Tell me about a time when you took a decision on your own without the manager's prior approval.",
+    "Tell me about a time when you faced a setback initially but still achieved the goal.",
+    "Tell me about a time when you felt under pressure and had to pivot at the last minute."
+  ]
+}

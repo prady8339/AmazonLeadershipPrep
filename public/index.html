@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon LP Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f2f5;
+    }
+
+    #loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #555;
+    }
+
+    .lp-section {
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    .lp-section:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    }
+
+    .lp-title {
+      margin: 0;
+      background: #3498db;
+      color: white;
+      padding: 15px 20px;
+      font-size: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lp-content {
+      display: none;
+      padding: 20px;
+    }
+
+    .lp-section.open .lp-content {
+      display: block;
+    }
+
+    .question-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      padding: 12px;
+      background: white;
+      transition: background-color 0.3s ease;
+    }
+
+    .question-item.completed {
+      background: #d7ffd9;
+      border-color: #27ae60;
+    }
+
+    .question-item p {
+      margin: 0 0 8px;
+      font-weight: bold;
+    }
+
+    .question-item textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      min-height: 60px;
+      resize: vertical;
+    }
+
+    .question-item button {
+      padding: 6px 12px;
+      margin-right: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .save-btn {
+      background-color: #2980b9;
+      color: white;
+    }
+
+    .save-btn:hover {
+      background-color: #1c6692;
+    }
+
+    .mark-btn {
+      background-color: #2ecc71;
+      color: white;
+    }
+
+    .mark-btn:hover {
+      background-color: #27ae60;
+    }
+
+    .progress-bar {
+      width: 100%;
+      background: #eee;
+      border-radius: 4px;
+      height: 8px;
+      margin: 0 10px;
+      overflow: hidden;
+    }
+
+    .progress-inner {
+      height: 100%;
+      background: linear-gradient(to right, #2ecc71 0%, #2ecc71 var(--percent), #ffffff var(--percent), #f5f5f5 100%);
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Amazon Leadership Principles Tracker</h1>
+
+<div id="loader">Loading questions...</div>
+<div id="lp-container" style="display:none;"></div>
+
+<script>
+  let savedNotes = {};
+
+  async function fetchNotes() {
+    const res = await fetch('/api/data');
+    savedNotes = await res.json();
+    if (!savedNotes.answers) savedNotes.answers = {};
+    if (!savedNotes.completed) savedNotes.completed = {};
+  }
+
+  async function saveNotes() {
+    await fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(savedNotes)
+    });
+  }
+
+  async function loadQuestionsAndRender() {
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('lp-container').style.display = 'none';
+
+    await fetchNotes();
+
+    const res = await fetch('/api/questions');
+    const questions = await res.json();
+    const container = document.getElementById('lp-container');
+    container.innerHTML = '';
+
+    Object.entries(questions).forEach(([category, items]) => {
+      const section = document.createElement('section');
+      section.className = 'lp-section';
+
+      const title = document.createElement('h2');
+      title.className = 'lp-title';
+
+      const titleText = document.createElement('span');
+      titleText.textContent = `${category} (${items.length})`;
+
+      const progress = document.createElement('div');
+      progress.className = 'progress-bar';
+      const progressInner = document.createElement('div');
+      progressInner.className = 'progress-inner';
+      progress.appendChild(progressInner);
+
+      title.appendChild(titleText);
+      title.appendChild(progress);
+
+      const content = document.createElement('div');
+      content.className = 'lp-content';
+
+      let completedCount = 0;
+
+      items.forEach((questionText, index) => {
+        const key = `${category}::${index}`;
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'question-item';
+        if (savedNotes.completed[key]) {
+          questionDiv.classList.add('completed');
+          completedCount++;
+        }
+
+        const p = document.createElement('p');
+        p.textContent = questionText;
+
+        const textarea = document.createElement('textarea');
+        textarea.placeholder = 'Write your story here...';
+        textarea.value = savedNotes.answers?.[key] || '';
+
+        const saveButton = document.createElement('button');
+        saveButton.textContent = 'Save Answer';
+        saveButton.className = 'save-btn';
+        saveButton.addEventListener('click', async () => {
+          savedNotes.answers[key] = textarea.value;
+          await saveNotes();
+          alert('Answer saved!');
+        });
+
+        const markButton = document.createElement('button');
+        markButton.textContent = savedNotes.completed[key] ? 'Unmark' : 'Mark as Done';
+        markButton.className = 'mark-btn';
+        markButton.addEventListener('click', async () => {
+          const done = !savedNotes.completed[key];
+          savedNotes.completed[key] = done;
+          questionDiv.classList.toggle('completed', done);
+          markButton.textContent = done ? 'Unmark' : 'Mark as Done';
+          updateProgressBar(progressInner, section.querySelectorAll('.question-item').length);
+          await saveNotes();
+        });
+
+        questionDiv.appendChild(p);
+        questionDiv.appendChild(textarea);
+        questionDiv.appendChild(saveButton);
+        questionDiv.appendChild(markButton);
+        content.appendChild(questionDiv);
+      });
+
+      section.appendChild(title);
+      section.appendChild(content);
+      container.appendChild(section);
+
+      updateProgressBar(progressInner, items.length, completedCount);
+
+      title.addEventListener('click', () => {
+        section.classList.toggle('open');
+      });
+    });
+
+    document.getElementById('loader').style.display = 'none';
+    container.style.display = 'block';
+  }
+
+  function updateProgressBar(bar, total, done = null) {
+    const completed = done !== null
+      ? done
+      : Array.from(bar.closest('.lp-section').querySelectorAll('.question-item.completed')).length;
+    const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+    bar.style.setProperty('--percent', `${percent}%`);
+  }
+
+  loadQuestionsAndRender();
+</script>
+</body>
+</html>

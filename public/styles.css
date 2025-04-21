@@ -1,0 +1,141 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f7f9fc;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  .container {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  h1 {
+    text-align: center;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .completed {
+    text-decoration: line-through;
+    color: gray;
+  }
+  
+  button {
+    background: #0a84ff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  button.completed {
+    background: #2ecc71;
+  }
+
+  
+  .note-section {
+    margin-top: 10px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    animation: fadeIn 0.3s ease forwards;
+  }
+  
+  .note-section textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    resize: vertical;
+  }
+  
+  .note-section button {
+    align-self: flex-end;
+    background: #2ecc71;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .note-section button:hover {
+    background: #27ae60;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scaleY(0); transform-origin: top; }
+    to { opacity: 1; transform: scaleY(1); }
+  }
+  
+  li {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  li > div:first-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+
+  .lp-section {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin: 20px 0;
+    padding: 15px;
+    background: #f9f9f9;
+  }
+  
+  .lp-section h2 {
+    margin-bottom: 10px;
+  }
+  
+  .lp-section ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+  
+  .lp-section textarea {
+    width: 100%;
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  
+  .lp-section button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .lp-section button:hover {
+    background: #27ae60;
+  }
+  
