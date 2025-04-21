@@ -273,12 +273,15 @@
         });
 
         // If there's saved audio, show the audio player
-        if (savedNotes.audio?.[key]) {
-          const audioPlayer = document.createElement('audio');
-          audioPlayer.controls = true;
-          audioPlayer.src = savedNotes.audio[key];
-          questionDiv.appendChild(audioPlayer);
-        }
+// If there's saved audio, show the audio player
+if (savedNotes.audio?.[key]) {
+  const audioPlayer = document.createElement('audio');
+  audioPlayer.controls = true;
+  // Make sure to prepend the full URL to the saved audio path
+  audioPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
+  questionDiv.appendChild(audioPlayer);
+}
+
 
         // Append the record button to the question div
         questionDiv.appendChild(recordButton);

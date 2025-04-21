@@ -55,14 +55,17 @@ app.get('/api/questions', (req, res) => {
   });
 });
 
+app.use('/audio', express.static(path.join(__dirname, 'audio')));
+
 // API to upload audio files
 app.post('/api/upload-audio', upload.single('audio'), (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded');
   }
-  const filePath = `/audio/${req.file.filename}`;
+  const filePath = `/audio/${req.file.filename}`; // Store the relative path
   res.json({ path: filePath });
 });
+
 
 // Fallback for unknown routes
 app.use((req, res) => {
