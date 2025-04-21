@@ -54,7 +54,7 @@
       border-top-left-radius: 16px;
       border-top-right-radius: 16px;
       display: flex;
-    flex-direction: column;
+      flex-direction: column;
     }
 
     /* Content Styling */
@@ -172,8 +172,9 @@
 
     #lp-container {
       width: 50%;
-      margin:auto;
+      margin: auto;
     }
+
     .lp-section {
       position: relative;
     }
@@ -189,7 +190,7 @@
       backdrop-filter: blur(5px);
       border-radius: 16px;
       z-index: -1;
-      
+
     }
 
 
@@ -202,10 +203,11 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .lp-section{
+    .lp-section {
       background: transparent;
-      border : 2px solid rgb(23, 23, 23);
+      border: 2px solid rgb(23, 23, 23);
     }
+
     .question-item:hover,
     .lp-section:hover {
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
@@ -223,8 +225,9 @@
       /* background-size: cover; */
       position: relative;
       text-align: center;
-      margin:50px;
-      padding: 50px;;
+      margin: 50px;
+      padding: 50px;
+      ;
       border-radius: 30px;
 
     }
@@ -295,7 +298,8 @@
       if (!savedNotes.answers) savedNotes.answers = {};
       if (!savedNotes.completed) savedNotes.completed = {};
       if (!savedNotes.audio) savedNotes.audio = {};
-      if (!savedNode.transcription) savedNode.transcription = {};
+      if (!savedNotes.transcription) saveNotes.transcription = {};
+      console.log(savedNotes)
     }
 
     async function saveNotes() {
@@ -394,91 +398,91 @@
           let isRecording = false;
 
           recordButton.addEventListener('click', async () => {
-  if (!isRecording) {
-    if (!navigator.mediaDevices) {
-      alert('Mic access not supported in this browser.');
-      return;
-    }
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.start();
-    isRecording = true;
-    recordButton.textContent = 'Stop ⏹️';
-    audioChunks = [];
+            if (!isRecording) {
+              if (!navigator.mediaDevices) {
+                alert('Mic access not supported in this browser.');
+                return;
+              }
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              mediaRecorder = new MediaRecorder(stream);
+              mediaRecorder.start();
+              isRecording = true;
+              recordButton.textContent = 'Stop ⏹️';
+              audioChunks = [];
 
-    mediaRecorder.addEventListener('dataavailable', event => {
-      audioChunks.push(event.data);
-    });
+              mediaRecorder.addEventListener('dataavailable', event => {
+                audioChunks.push(event.data);
+              });
 
-    mediaRecorder.addEventListener('stop', async () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      const audioURL = URL.createObjectURL(audioBlob);
+              mediaRecorder.addEventListener('stop', async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioURL = URL.createObjectURL(audioBlob);
 
-      // Create preview player
-      const previewPlayer = document.createElement('audio');
-      previewPlayer.controls = true;
-      previewPlayer.src = audioURL;
+                // Create preview player
+                const previewPlayer = document.createElement('audio');
+                previewPlayer.controls = true;
+                previewPlayer.src = audioURL;
 
-      const confirmDiv = document.createElement('div');
-      confirmDiv.style.display = 'flex';
-      confirmDiv.style.gap = '10px';
-      confirmDiv.style.marginTop = '10px';
+                const confirmDiv = document.createElement('div');
+                confirmDiv.style.display = 'flex';
+                confirmDiv.style.gap = '10px';
+                confirmDiv.style.marginTop = '10px';
 
-      const acceptBtn = document.createElement('button');
-      acceptBtn.textContent = '✅ Accept';
-      acceptBtn.className = 'mark-btn';
+                const acceptBtn = document.createElement('button');
+                acceptBtn.textContent = '✅ Accept';
+                acceptBtn.className = 'mark-btn';
 
-      const discardBtn = document.createElement('button');
-      discardBtn.textContent = '❌ Discard';
-      discardBtn.className = 'save-btn';
+                const discardBtn = document.createElement('button');
+                discardBtn.textContent = '❌ Discard';
+                discardBtn.className = 'save-btn';
 
-      confirmDiv.appendChild(acceptBtn);
-      confirmDiv.appendChild(discardBtn);
+                confirmDiv.appendChild(acceptBtn);
+                confirmDiv.appendChild(discardBtn);
 
-      // Insert player and buttons before record button
-      audioControlsDiv.insertBefore(previewPlayer, recordButton);
-      audioControlsDiv.insertBefore(confirmDiv, recordButton);
+                // Insert player and buttons before record button
+                audioControlsDiv.insertBefore(previewPlayer, recordButton);
+                audioControlsDiv.insertBefore(confirmDiv, recordButton);
 
-      acceptBtn.addEventListener('click', async () => {
-        const formData = new FormData();
-        formData.append('audio', audioBlob, `${key}.webm`);
-        const response = await fetch('/api/upload-audio', {
-          method: 'POST',
-          body: formData
-        });
-        const data = await response.json();
-        savedNotes.audio = savedNotes.audio || {};
-        savedNotes.audio[key] = data.path;
-        await saveNotes();
+                acceptBtn.addEventListener('click', async () => {
+                  const formData = new FormData();
+                  formData.append('audio', audioBlob, `${key}.webm`);
+                  const response = await fetch('/api/upload-audio', {
+                    method: 'POST',
+                    body: formData
+                  });
+                  const data = await response.json();
+                  savedNotes.audio = savedNotes.audio || {};
+                  savedNotes.audio[key] = data.path;
+                  await saveNotes();
 
-        // Clean up UI
-        previewPlayer.remove();
-        confirmDiv.remove();
+                  // Clean up UI
+                  previewPlayer.remove();
+                  confirmDiv.remove();
 
-        // Show saved audio player
-        const finalPlayer = document.createElement('audio');
-        finalPlayer.controls = true;
-        finalPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
+                  // Show saved audio player
+                  const finalPlayer = document.createElement('audio');
+                  finalPlayer.controls = true;
+                  finalPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
 
-        // Remove existing audio player if any
-        const existingPlayer = audioControlsDiv.querySelector('audio');
-        if (existingPlayer) existingPlayer.remove();
+                  // Remove existing audio player if any
+                  const existingPlayer = audioControlsDiv.querySelector('audio');
+                  if (existingPlayer) existingPlayer.remove();
 
-        audioControlsDiv.insertBefore(finalPlayer, recordButton);
-      });
+                  audioControlsDiv.insertBefore(finalPlayer, recordButton);
+                });
 
-      discardBtn.addEventListener('click', () => {
-        previewPlayer.remove();
-        confirmDiv.remove();
-      });
+                discardBtn.addEventListener('click', () => {
+                  previewPlayer.remove();
+                  confirmDiv.remove();
+                });
 
-      recordButton.textContent = '🎙️ Record';
-      isRecording = false;
-    });
-  } else {
-    mediaRecorder.stop();
-  }
-});
+                recordButton.textContent = '🎙️ Record';
+                isRecording = false;
+              });
+            } else {
+              mediaRecorder.stop();
+            }
+          });
 
           // If there's saved audio, show the audio player
           if (savedNotes.audio?.[key]) {
@@ -487,6 +491,37 @@
             // Make sure to prepend the full URL to the saved audio path
             audioPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
             audioControlsDiv.appendChild(audioPlayer);
+          }
+
+          if (savedNotes.transcription?.[key]) {
+            const transcriptionDiv = document.createElement('div');
+            transcriptionDiv.className = 'transcription-box';
+            transcriptionDiv.style.border = '1px solid #ddd';
+            transcriptionDiv.style.borderRadius = '5px';
+            transcriptionDiv.style.padding = '10px';
+            transcriptionDiv.style.marginTop = '10px';
+            transcriptionDiv.style.backgroundColor = '#f9f9f9';
+            transcriptionDiv.style.maxHeight = '100px';
+            transcriptionDiv.style.overflowY = 'auto';
+
+            const transcriptionTitle = document.createElement('div');
+            transcriptionTitle.textContent = 'Transcription:';
+            transcriptionTitle.style.fontWeight = 'bold';
+            transcriptionTitle.style.marginBottom = '5px';
+
+            const transcriptionText = document.createElement('div');
+            transcriptionText.textContent = savedNotes.transcription[key];
+
+            transcriptionDiv.appendChild(transcriptionTitle);
+            transcriptionDiv.appendChild(transcriptionText);
+
+            // Create a container for the transcription
+            const transcriptionContainer = document.createElement('div');
+            transcriptionContainer.style.width = '100%';
+            transcriptionContainer.appendChild(transcriptionDiv);
+
+            // Add the transcription container after the audio controls
+            questionDiv.appendChild(transcriptionContainer, textarea);
           }
 
           // Append the record button to the audioControlsDiv

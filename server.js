@@ -36,24 +36,26 @@ app.get('/api/data', async (req, res) => {
     const audioTextData = await fs.promises.readFile('./audioText.json', 'utf-8');
     const transcriptionData = JSON.parse(audioTextData);
 
+    // Initialize the transcription field
+    jsonData.transcription = {};
+
     // Combine both audio data and transcription text for each audio entry
     Object.keys(jsonData.audio).forEach((key) => {
-      // If transcription exists, append it to the corresponding entry in data
+      // If transcription exists, append it to the transcription object
       if (transcriptionData[key]) {
-        jsonData.audio[key] = {
-          ...jsonData.audio[key],
-          transcription: transcriptionData[key]
-        };
+        jsonData.transcription[key] = transcriptionData[key];
       }
     });
 
     // Send the updated data with transcriptions appended
+    console.log(jsonData);
     res.json(jsonData);
   } catch (err) {
     console.error('Error reading files:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 
 app.post('/api/data', (req, res) => {

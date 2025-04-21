@@ -47,5 +47,6 @@ build/
 
 # JSON storage if you store notes locally
 data.json
+audioText.json
 
 audio/
