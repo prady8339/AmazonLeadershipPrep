@@ -132,7 +132,6 @@
 
 <div id="loader">Loading questions...</div>
 <div id="lp-container" style="display:none;"></div>
-
 <script>
   let savedNotes = {};
 
@@ -141,6 +140,7 @@
     savedNotes = await res.json();
     if (!savedNotes.answers) savedNotes.answers = {};
     if (!savedNotes.completed) savedNotes.completed = {};
+    if (!savedNotes.audio) savedNotes.audio = {};
   }
 
   async function saveNotes() {
@@ -223,6 +223,65 @@
           await saveNotes();
         });
 
+        // Microphone Record Button
+        const recordButton = document.createElement('button');
+        recordButton.textContent = '🎙️ Record';
+        recordButton.className = 'save-btn';
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        recordButton.addEventListener('click', async () => {
+          if (!isRecording) {
+            if (!navigator.mediaDevices) {
+              alert('Mic access not supported in this browser.');
+              return;
+            }
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            isRecording = true;
+            recordButton.textContent = 'Stop ⏹️';
+
+            audioChunks = [];
+            mediaRecorder.addEventListener('dataavailable', event => {
+              audioChunks.push(event.data);
+            });
+
+            mediaRecorder.addEventListener('stop', async () => {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              const formData = new FormData();
+              formData.append('audio', audioBlob, `${key}.webm`);
+
+              const response = await fetch('/api/upload-audio', {
+                method: 'POST',
+                body: formData
+              });
+              const data = await response.json();
+              savedNotes.audio = savedNotes.audio || {};
+              savedNotes.audio[key] = data.path;
+              await saveNotes();
+
+              alert('Audio saved!');
+              recordButton.textContent = '🎙️ Record';
+              isRecording = false;
+            });
+          } else {
+            mediaRecorder.stop();
+          }
+        });
+
+        // If there's saved audio, show the audio player
+        if (savedNotes.audio?.[key]) {
+          const audioPlayer = document.createElement('audio');
+          audioPlayer.controls = true;
+          audioPlayer.src = savedNotes.audio[key];
+          questionDiv.appendChild(audioPlayer);
+        }
+
+        // Append the record button to the question div
+        questionDiv.appendChild(recordButton);
         questionDiv.appendChild(p);
         questionDiv.appendChild(textarea);
         questionDiv.appendChild(saveButton);
@@ -255,5 +314,6 @@
 
   loadQuestionsAndRender();
 </script>
+
 </body>
 </html>
