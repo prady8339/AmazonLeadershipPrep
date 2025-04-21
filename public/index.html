@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Amazon LP Tracker</title>
   <style>
+    /* General Body Styles */
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Amazon Ember', Arial, sans-serif;
       padding: 20px;
-      background: #f0f2f5;
+      background: url('https://images.unsplash.com/photo-1524790242797-d724c343fcf5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDJ8fGJhY2tncm91bmR8ZW58MHx8fHwxNjg4NjY2MjMw&ixlib=rb-1.2.1&q=80&w=1080') no-repeat center center fixed;
+      background-size: cover;
+      color: #111;
+      overflow-x: hidden;
     }
 
     #loader {
@@ -19,32 +24,40 @@
       color: #555;
     }
 
+    /* Section Styling */
     .lp-section {
-      background: white;
+      background: rgba(255, 255, 255, 0.85);
       border-radius: 16px;
       margin-bottom: 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       cursor: pointer;
     }
 
     .lp-section:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+      transform: translateY(-5px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
     }
 
+    /* Title Styling */
     .lp-title {
       margin: 0;
-      background: #3498db;
+      background: #FF9900;
       color: white;
       padding: 15px 20px;
       font-size: 18px;
+      font-weight: bold;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      display: flex;
+    flex-direction: column;
     }
 
+    /* Content Styling */
     .lp-content {
       display: none;
       padding: 20px;
@@ -54,17 +67,18 @@
       display: block;
     }
 
+    /* Question Item Styling */
     .question-item {
       border: 1px solid #ddd;
       border-radius: 8px;
       margin-bottom: 12px;
       padding: 12px;
       background: white;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .question-item.completed {
-      background: #d7ffd9;
+      background: #E4FFEC;
       border-color: #27ae60;
     }
 
@@ -81,24 +95,30 @@
       border: 1px solid #ccc;
       min-height: 60px;
       resize: vertical;
+      transition: border-color 0.3s ease;
+    }
+
+    .question-item textarea:focus {
+      border-color: #FF9900;
     }
 
     .question-item button {
-      padding: 6px 12px;
-      margin-right: 5px;
+      padding: 8px 16px;
+      margin-right: 10px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
       transition: all 0.2s ease;
+      font-weight: bold;
     }
 
     .save-btn {
-      background-color: #2980b9;
+      background-color: #FF9900;
       color: white;
     }
 
     .save-btn:hover {
-      background-color: #1c6692;
+      background-color: #cc7a00;
     }
 
     .mark-btn {
@@ -110,13 +130,15 @@
       background-color: #27ae60;
     }
 
+    /* Progress Bar Styling */
     .progress-bar {
       width: 100%;
-      background: #eee;
+      background: #f1f1f1;
       border-radius: 4px;
       height: 8px;
-      margin: 0 10px;
+      margin: 10px 0;
       overflow: hidden;
+      border: 2px solid rgb(113 113 113);
     }
 
     .progress-inner {
@@ -124,199 +146,331 @@
       background: linear-gradient(to right, #2ecc71 0%, #2ecc71 var(--percent), #ffffff var(--percent), #f5f5f5 100%);
       width: 100%;
     }
+
+    /* Audio Controls Styling */
+    .audio-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .audio-controls button {
+      background-color: #0099ff;
+      color: white;
+      font-size: 12px;
+
+    }
+
+    .audio-controls button:hover {
+      background-color: #155c8a;
+    }
+
+    /* Blurred Background for sections */
+
+    #lp-container {
+      width: 50%;
+      margin:auto;
+    }
+    .lp-section {
+      position: relative;
+    }
+
+    .lp-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+      border-radius: 16px;
+      z-index: -1;
+      
+    }
+
+    /* Shadow Effects for a Modern Look */
+    .question-item,
+    .lp-section {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .question-item:hover,
+    .lp-section:hover {
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      transform: translateY(-4px);
+    }
+
+    /* Container for header */
+    .amazon-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      /* height: 100vh; */
+      /* background: url('https://images.unsplash.com/photo-1496365877400-9e4a6032f121?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDJ8fGJhY2tncm91bmR8ZW58MHx8fHwxNjg4NjY2MjMw&ixlib=rb-1.2.1&q=80&w=1080') no-repeat center center fixed; */
+      /* background-size: cover; */
+      position: relative;
+      text-align: center;
+      margin:50px;
+      padding: 50px;;
+      border-radius: 30px;
+
+    }
+
+    /* Blurred gradient background */
+    .amazon-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.7), rgba(255, 204, 0, 0.7));
+      backdrop-filter: blur(10px);
+      z-index: -1;
+      border-radius: 30px;
+    }
+
+    /* Amazon Logo Styling */
+    .amazon-logo {
+      width: 120px;
+      margin-bottom: 15px;
+    }
+
+    /* Title Styling */
+    .amazon-title {
+      font-family: 'Amazon Ember', Arial, sans-serif;
+      font-size: 36px;
+      font-weight: bold;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #000000, #797979);
+      -webkit-background-clip: text;
+      color: transparent;
+      margin: 0;
+      padding: 10px;
+      box-shadow: 3px 4px 10px rgba(0, 0, 0, 0.2);
+      border-radius: 30px;
+    }
+
+    /* Hover Effect */
+    .amazon-title:hover {
+      text-decoration: underline;
+      cursor: pointer;
+    }
   </style>
+
 </head>
+
 <body>
 
-<h1>Amazon Leadership Principles Tracker</h1>
+  <div class="amazon-header">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon Logo"
+      class="amazon-logo">
+    <h1 class="amazon-title">Amazon Leadership Principles Tracker</h1>
+  </div>
 
-<div id="loader">Loading questions...</div>
-<div id="lp-container" style="display:none;"></div>
-<script>
-  let savedNotes = {};
 
-  async function fetchNotes() {
-    const res = await fetch('/api/data');
-    savedNotes = await res.json();
-    if (!savedNotes.answers) savedNotes.answers = {};
-    if (!savedNotes.completed) savedNotes.completed = {};
-    if (!savedNotes.audio) savedNotes.audio = {};
-  }
+  <div id="loader">Loading questions...</div>
+  <div id="lp-container" style="display:none;"></div>
+  <script>
+    let savedNotes = {};
 
-  async function saveNotes() {
-    await fetch('/api/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(savedNotes)
-    });
-  }
+    async function fetchNotes() {
+      const res = await fetch('/api/data');
+      savedNotes = await res.json();
+      if (!savedNotes.answers) savedNotes.answers = {};
+      if (!savedNotes.completed) savedNotes.completed = {};
+      if (!savedNotes.audio) savedNotes.audio = {};
+    }
 
-  async function loadQuestionsAndRender() {
-    document.getElementById('loader').style.display = 'block';
-    document.getElementById('lp-container').style.display = 'none';
+    async function saveNotes() {
+      await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(savedNotes)
+      });
+    }
 
-    await fetchNotes();
+    async function loadQuestionsAndRender() {
+      document.getElementById('loader').style.display = 'block';
+      document.getElementById('lp-container').style.display = 'none';
 
-    const res = await fetch('/api/questions');
-    const questions = await res.json();
-    const container = document.getElementById('lp-container');
-    container.innerHTML = '';
+      await fetchNotes();
 
-    Object.entries(questions).forEach(([category, items]) => {
-      const section = document.createElement('section');
-      section.className = 'lp-section';
+      const res = await fetch('/api/questions');
+      const questions = await res.json();
+      const container = document.getElementById('lp-container');
+      container.innerHTML = '';
 
-      const title = document.createElement('h2');
-      title.className = 'lp-title';
+      Object.entries(questions).forEach(([category, items]) => {
+        const section = document.createElement('section');
+        section.className = 'lp-section';
 
-      const titleText = document.createElement('span');
-      titleText.textContent = `${category} (${items.length})`;
+        const title = document.createElement('h2');
+        title.className = 'lp-title';
 
-      const progress = document.createElement('div');
-      progress.className = 'progress-bar';
-      const progressInner = document.createElement('div');
-      progressInner.className = 'progress-inner';
-      progress.appendChild(progressInner);
+        const titleText = document.createElement('span');
+        titleText.textContent = `${category} (${items.length})`;
 
-      title.appendChild(titleText);
-      title.appendChild(progress);
+        const progress = document.createElement('div');
+        progress.className = 'progress-bar';
+        const progressInner = document.createElement('div');
+        progressInner.className = 'progress-inner';
+        progress.appendChild(progressInner);
 
-      const content = document.createElement('div');
-      content.className = 'lp-content';
+        title.appendChild(titleText);
+        title.appendChild(progress);
 
-      let completedCount = 0;
+        const content = document.createElement('div');
+        content.className = 'lp-content';
 
-      items.forEach((questionText, index) => {
-        const key = `${category}::${index}`;
-        const questionDiv = document.createElement('div');
-        questionDiv.className = 'question-item';
-        if (savedNotes.completed[key]) {
-          questionDiv.classList.add('completed');
-          completedCount++;
-        }
+        let completedCount = 0;
 
-        const p = document.createElement('p');
-        p.textContent = questionText;
-
-        const textarea = document.createElement('textarea');
-        textarea.placeholder = 'Write your story here...';
-        textarea.value = savedNotes.answers?.[key] || '';
-
-        const saveButton = document.createElement('button');
-        saveButton.textContent = 'Save Answer';
-        saveButton.className = 'save-btn';
-        saveButton.addEventListener('click', async () => {
-          savedNotes.answers[key] = textarea.value;
-          await saveNotes();
-          alert('Answer saved!');
-        });
-
-        const markButton = document.createElement('button');
-        markButton.textContent = savedNotes.completed[key] ? 'Unmark' : 'Mark as Done';
-        markButton.className = 'mark-btn';
-        markButton.addEventListener('click', async () => {
-          const done = !savedNotes.completed[key];
-          savedNotes.completed[key] = done;
-          questionDiv.classList.toggle('completed', done);
-          markButton.textContent = done ? 'Unmark' : 'Mark as Done';
-          updateProgressBar(progressInner, section.querySelectorAll('.question-item').length);
-          await saveNotes();
-        });
-
-        // Microphone Record Button
-        const recordButton = document.createElement('button');
-        recordButton.textContent = '🎙️ Record';
-        recordButton.className = 'save-btn';
-
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
-
-        recordButton.addEventListener('click', async () => {
-          if (!isRecording) {
-            if (!navigator.mediaDevices) {
-              alert('Mic access not supported in this browser.');
-              return;
-            }
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.start();
-            isRecording = true;
-            recordButton.textContent = 'Stop ⏹️';
-
-            audioChunks = [];
-            mediaRecorder.addEventListener('dataavailable', event => {
-              audioChunks.push(event.data);
-            });
-
-            mediaRecorder.addEventListener('stop', async () => {
-              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-              const formData = new FormData();
-              formData.append('audio', audioBlob, `${key}.webm`);
-
-              const response = await fetch('/api/upload-audio', {
-                method: 'POST',
-                body: formData
-              });
-              const data = await response.json();
-              savedNotes.audio = savedNotes.audio || {};
-              savedNotes.audio[key] = data.path;
-              await saveNotes();
-
-              alert('Audio saved!');
-              recordButton.textContent = '🎙️ Record';
-              isRecording = false;
-            });
-          } else {
-            mediaRecorder.stop();
+        items.forEach((questionText, index) => {
+          const key = `${category}::${index}`;
+          const questionDiv = document.createElement('div');
+          questionDiv.className = 'question-item';
+          if (savedNotes.completed[key]) {
+            questionDiv.classList.add('completed');
+            completedCount++;
           }
+
+          const p = document.createElement('p');
+          p.textContent = questionText;
+
+          const textarea = document.createElement('textarea');
+          textarea.placeholder = 'Write your story here...';
+          textarea.value = savedNotes.answers?.[key] || '';
+
+          const saveButton = document.createElement('button');
+          saveButton.textContent = 'Save Answer';
+          saveButton.className = 'save-btn';
+          saveButton.addEventListener('click', async () => {
+            savedNotes.answers[key] = textarea.value;
+            await saveNotes();
+            alert('Answer saved!');
+          });
+
+          const markButton = document.createElement('button');
+          markButton.textContent = savedNotes.completed[key] ? 'Unmark' : 'Mark as Done';
+          markButton.className = 'mark-btn';
+          markButton.addEventListener('click', async () => {
+            const done = !savedNotes.completed[key];
+            savedNotes.completed[key] = done;
+            questionDiv.classList.toggle('completed', done);
+            markButton.textContent = done ? 'Unmark' : 'Mark as Done';
+            updateProgressBar(progressInner, section.querySelectorAll('.question-item').length);
+            await saveNotes();
+          });
+
+          // Container for record button and audio player
+          const audioControlsDiv = document.createElement('div');
+          audioControlsDiv.className = 'audio-controls';
+          audioControlsDiv.style.display = 'flex';
+          audioControlsDiv.style.gap = '10px'; // Space between record button and audio player
+
+          // Microphone Record Button
+          const recordButton = document.createElement('button');
+          recordButton.textContent = '🎙️ Record';
+          recordButton.className = 'save-btn';
+
+          let mediaRecorder;
+          let audioChunks = [];
+          let isRecording = false;
+
+          recordButton.addEventListener('click', async () => {
+            if (!isRecording) {
+              if (!navigator.mediaDevices) {
+                alert('Mic access not supported in this browser.');
+                return;
+              }
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              mediaRecorder = new MediaRecorder(stream);
+              mediaRecorder.start();
+              isRecording = true;
+              recordButton.textContent = 'Stop ⏹️';
+
+              audioChunks = [];
+              mediaRecorder.addEventListener('dataavailable', event => {
+                audioChunks.push(event.data);
+              });
+
+              mediaRecorder.addEventListener('stop', async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const formData = new FormData();
+                formData.append('audio', audioBlob, `${key}.webm`);
+
+                const response = await fetch('/api/upload-audio', {
+                  method: 'POST',
+                  body: formData
+                });
+                const data = await response.json();
+                savedNotes.audio = savedNotes.audio || {};
+                savedNotes.audio[key] = data.path;
+                await saveNotes();
+
+                alert('Audio saved!');
+                recordButton.textContent = '🎙️ Record';
+                isRecording = false;
+              });
+            } else {
+              mediaRecorder.stop();
+            }
+          });
+
+          // If there's saved audio, show the audio player
+          if (savedNotes.audio?.[key]) {
+            const audioPlayer = document.createElement('audio');
+            audioPlayer.controls = true;
+            // Make sure to prepend the full URL to the saved audio path
+            audioPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
+            audioControlsDiv.appendChild(audioPlayer);
+          }
+
+          // Append the record button to the audioControlsDiv
+          audioControlsDiv.appendChild(recordButton);
+
+          // Append the audioControlsDiv to the question div
+          questionDiv.appendChild(audioControlsDiv);
+          questionDiv.appendChild(p);
+          questionDiv.appendChild(textarea);
+          questionDiv.appendChild(saveButton);
+          questionDiv.appendChild(markButton);
+          content.appendChild(questionDiv);
         });
 
-        // If there's saved audio, show the audio player
-// If there's saved audio, show the audio player
-if (savedNotes.audio?.[key]) {
-  const audioPlayer = document.createElement('audio');
-  audioPlayer.controls = true;
-  // Make sure to prepend the full URL to the saved audio path
-  audioPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
-  questionDiv.appendChild(audioPlayer);
-}
+        section.appendChild(title);
+        section.appendChild(content);
+        container.appendChild(section);
 
+        updateProgressBar(progressInner, items.length, completedCount);
 
-        // Append the record button to the question div
-        questionDiv.appendChild(recordButton);
-        questionDiv.appendChild(p);
-        questionDiv.appendChild(textarea);
-        questionDiv.appendChild(saveButton);
-        questionDiv.appendChild(markButton);
-        content.appendChild(questionDiv);
+        title.addEventListener('click', () => {
+          section.classList.toggle('open');
+        });
       });
 
-      section.appendChild(title);
-      section.appendChild(content);
-      container.appendChild(section);
+      document.getElementById('loader').style.display = 'none';
+      container.style.display = 'block';
+    }
 
-      updateProgressBar(progressInner, items.length, completedCount);
+    function updateProgressBar(bar, total, done = null) {
+      const completed = done !== null
+        ? done
+        : Array.from(bar.closest('.lp-section').querySelectorAll('.question-item.completed')).length;
+      const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+      bar.style.setProperty('--percent', `${percent}%`);
+    }
 
-      title.addEventListener('click', () => {
-        section.classList.toggle('open');
-      });
-    });
-
-    document.getElementById('loader').style.display = 'none';
-    container.style.display = 'block';
-  }
-
-  function updateProgressBar(bar, total, done = null) {
-    const completed = done !== null
-      ? done
-      : Array.from(bar.closest('.lp-section').querySelectorAll('.question-item.completed')).length;
-    const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
-    bar.style.setProperty('--percent', `${percent}%`);
-  }
-
-  loadQuestionsAndRender();
-</script>
+    loadQuestionsAndRender();
+  </script>
 
 </body>
+
 </html>
