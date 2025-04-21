@@ -385,44 +385,91 @@
           let isRecording = false;
 
           recordButton.addEventListener('click', async () => {
-            if (!isRecording) {
-              if (!navigator.mediaDevices) {
-                alert('Mic access not supported in this browser.');
-                return;
-              }
-              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-              mediaRecorder = new MediaRecorder(stream);
-              mediaRecorder.start();
-              isRecording = true;
-              recordButton.textContent = 'Stop ⏹️';
+  if (!isRecording) {
+    if (!navigator.mediaDevices) {
+      alert('Mic access not supported in this browser.');
+      return;
+    }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.start();
+    isRecording = true;
+    recordButton.textContent = 'Stop ⏹️';
+    audioChunks = [];
 
-              audioChunks = [];
-              mediaRecorder.addEventListener('dataavailable', event => {
-                audioChunks.push(event.data);
-              });
+    mediaRecorder.addEventListener('dataavailable', event => {
+      audioChunks.push(event.data);
+    });
 
-              mediaRecorder.addEventListener('stop', async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                const formData = new FormData();
-                formData.append('audio', audioBlob, `${key}.webm`);
+    mediaRecorder.addEventListener('stop', async () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const audioURL = URL.createObjectURL(audioBlob);
 
-                const response = await fetch('/api/upload-audio', {
-                  method: 'POST',
-                  body: formData
-                });
-                const data = await response.json();
-                savedNotes.audio = savedNotes.audio || {};
-                savedNotes.audio[key] = data.path;
-                await saveNotes();
+      // Create preview player
+      const previewPlayer = document.createElement('audio');
+      previewPlayer.controls = true;
+      previewPlayer.src = audioURL;
 
-                alert('Audio saved!');
-                recordButton.textContent = '🎙️ Record';
-                isRecording = false;
-              });
-            } else {
-              mediaRecorder.stop();
-            }
-          });
+      const confirmDiv = document.createElement('div');
+      confirmDiv.style.display = 'flex';
+      confirmDiv.style.gap = '10px';
+      confirmDiv.style.marginTop = '10px';
+
+      const acceptBtn = document.createElement('button');
+      acceptBtn.textContent = '✅ Accept';
+      acceptBtn.className = 'mark-btn';
+
+      const discardBtn = document.createElement('button');
+      discardBtn.textContent = '❌ Discard';
+      discardBtn.className = 'save-btn';
+
+      confirmDiv.appendChild(acceptBtn);
+      confirmDiv.appendChild(discardBtn);
+
+      // Insert player and buttons before record button
+      audioControlsDiv.insertBefore(previewPlayer, recordButton);
+      audioControlsDiv.insertBefore(confirmDiv, recordButton);
+
+      acceptBtn.addEventListener('click', async () => {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, `${key}.webm`);
+        const response = await fetch('/api/upload-audio', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+        savedNotes.audio = savedNotes.audio || {};
+        savedNotes.audio[key] = data.path;
+        await saveNotes();
+
+        // Clean up UI
+        previewPlayer.remove();
+        confirmDiv.remove();
+
+        // Show saved audio player
+        const finalPlayer = document.createElement('audio');
+        finalPlayer.controls = true;
+        finalPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
+
+        // Remove existing audio player if any
+        const existingPlayer = audioControlsDiv.querySelector('audio');
+        if (existingPlayer) existingPlayer.remove();
+
+        audioControlsDiv.insertBefore(finalPlayer, recordButton);
+      });
+
+      discardBtn.addEventListener('click', () => {
+        previewPlayer.remove();
+        confirmDiv.remove();
+      });
+
+      recordButton.textContent = '🎙️ Record';
+      isRecording = false;
+    });
+  } else {
+    mediaRecorder.stop();
+  }
+});
 
           // If there's saved audio, show the audio player
           if (savedNotes.audio?.[key]) {

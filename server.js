@@ -65,6 +65,51 @@ app.post('/api/upload-audio', upload.single('audio'), (req, res) => {
   const filePath = `/audio/${req.file.filename}`; // Store the relative path
   res.json({ path: filePath });
 });
+/*
+curl -X POST http://localhost:3000/api/prune-audio
+
+*/
+
+app.post('/api/prune-audio', (req, res) => {
+  pruneAudioFiles(); // Call the pruning function manually
+  res.send('Pruning process started...');
+});
+
+
+function pruneAudioFiles() {
+  fs.readFile('./data.json', 'utf-8', (err, data) => {
+    if (err) {
+      console.error('Error reading data.json:', err);
+      return;
+    }
+
+    const dataJson = JSON.parse(data);
+    const referencedAudioFiles = new Set(Object.values(dataJson.audio || {}));
+    const audioDir = path.join(__dirname, 'audio');
+
+    fs.readdir(audioDir, (err, files) => {
+      if (err) {
+        console.error('Error reading audio directory:', err);
+        return;
+      }
+
+      files.forEach(file => {
+        const filePath = path.join(audioDir, file);
+
+        // If the audio file is not referenced, delete it
+        if (!referencedAudioFiles.has(`/audio/${file}`)) {
+          fs.unlink(filePath, err => {
+            if (err) {
+              console.error('Error deleting file:', err);
+            } else {
+              console.log(`Deleted unreferenced audio file: ${file}`);
+            }
+          });
+        }
+      });
+    });
+  });
+}
 
 
 // Fallback for unknown routes
