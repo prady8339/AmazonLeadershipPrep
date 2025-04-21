@@ -67,7 +67,6 @@ app.post('/api/upload-audio', upload.single('audio'), (req, res) => {
 });
 /*
 curl -X POST http://localhost:3000/api/prune-audio
-
 */
 
 app.post('/api/prune-audio', (req, res) => {
