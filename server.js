@@ -4,13 +4,18 @@ const path = require('path');
 const { exec } = require('child_process');
 const cors = require('cors');
 const multer = require('multer');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
-app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Set up multer storage for audio files
 const audioStorage = multer.diskStorage({
@@ -28,35 +33,26 @@ const upload = multer({ storage: audioStorage });
 
 app.get('/api/data', async (req, res) => {
   try {
-    // Read data from data.json
     const data = await fs.promises.readFile('./data.json', 'utf-8');
     const jsonData = JSON.parse(data);
 
-    // Read transcription data from audioText.json
     const audioTextData = await fs.promises.readFile('./audioText.json', 'utf-8');
     const transcriptionData = JSON.parse(audioTextData);
 
-    // Initialize the transcription field
     jsonData.transcription = {};
 
-    // Combine both audio data and transcription text for each audio entry
     Object.keys(jsonData.audio).forEach((key) => {
-      // If transcription exists, append it to the transcription object
       if (transcriptionData[key]) {
         jsonData.transcription[key] = transcriptionData[key];
       }
     });
 
-    // Send the updated data with transcriptions appended
-    console.log(jsonData);
     res.json(jsonData);
   } catch (err) {
     console.error('Error reading files:', err);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-
 
 app.post('/api/data', (req, res) => {
   fs.writeFile('./data.json', JSON.stringify(req.body, null, 2), err => {
@@ -78,27 +74,23 @@ app.post('/api/upload-audio', upload.single('audio'), async (req, res) => {
   if (!req.file) return res.status(400).send('No file uploaded');
 
   const originalPath = path.join(__dirname, 'audio', req.file.filename);
-  const originalName = path.parse(req.file.originalname).name;  // Key
+  const originalName = path.parse(req.file.originalname).name;
   const basePath = path.join(path.dirname(originalPath), `${req.file.filename}`);
   const wavPath = `${basePath}.wav`;
   const outputTextPath = `${basePath}.txt`;
   const savedPath = `/audio/${req.file.filename}`;
 
   try {
-    // Convert the audio file to WAV format
     const ffmpegCmd = `ffmpeg -y -i "${originalPath}" "${wavPath}"`;
     console.log(`Running: ${ffmpegCmd}`);
     await execPromise(ffmpegCmd);
 
-    // Run whisper model to get the transcription from audio
     const whisperCmd = `/Users/mac/Documents/projects/roadmap/whisper.cpp/build/bin/whisper-cli -m "/Users/mac/Documents/projects/roadmap/whisper.cpp/models/ggml-base.en.bin" -f "${wavPath}" -otxt -of "${basePath}"`;
     console.log(`Running: ${whisperCmd}`);
     await execPromise(whisperCmd);
 
-    // Read the transcription text
     const transcript = await fs.promises.readFile(outputTextPath, 'utf-8');
 
-    // Read the existing data.json file (for audio metadata), or start fresh if it doesn't exist
     let jsonData = { audio: {}, completed: {}, answers: {} };
     try {
       const data = await fs.promises.readFile('./data.json', 'utf-8');
@@ -107,15 +99,11 @@ app.post('/api/upload-audio', upload.single('audio'), async (req, res) => {
       console.log('data.json missing or invalid, starting fresh.');
     }
 
-    // Save the audio metadata (audio path) in data.json
     jsonData.audio[originalName] = savedPath;
-
-    // Write updated audio metadata to data.json
     await fs.promises.writeFile('./data.json', JSON.stringify(jsonData, null, 2));
     console.log(`✅ Audio saved for ID: ${originalName}`);
     console.log(savedPath);
 
-    // Read the existing audioText.json file (for transcriptions), or start fresh if it doesn't exist
     let audioTextData = {};
     try {
       const audioTextFile = await fs.promises.readFile('./audioText.json', 'utf-8');
@@ -124,14 +112,10 @@ app.post('/api/upload-audio', upload.single('audio'), async (req, res) => {
       console.log('audioText.json missing or invalid, starting fresh.');
     }
 
-    // Save the transcription text in audioText.json
     audioTextData[originalName] = transcript.trim();
-
-    // Write updated transcription text to audioText.json
     await fs.promises.writeFile('./audioText.json', JSON.stringify(audioTextData, null, 2));
     console.log(`✅ Transcription saved for ID: ${originalName}`);
 
-    // Send response with the saved audio path and transcription text
     res.json({ path: savedPath, text: transcript.trim() });
 
   } catch (err) {
@@ -141,6 +125,60 @@ app.post('/api/upload-audio', upload.single('audio'), async (req, res) => {
 });
 
 
+app.post('/api/analyze', async (req, res) => {
+  const { question, key, answer } = req.body;
+
+  if (!question || !key || !answer) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    // Construct prompt
+    const prompt = `🧠 You are an expert behavioral interview coach. Analyze the candidate's answer and provide:
+- Strengths
+- Weaknesses
+- Suggestions for improvement
+- STAR format rating out of 10
+- Relevance to the question
+
+Question: ${question}
+
+Answer: ${answer}
+`;
+
+    // Use Gemini API
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const result = await model.generateContent({
+      contents: [
+        {
+          parts: [{ text: prompt }]
+        }
+      ]
+    });
+
+    const analysisText = result.response.candidates?.[0]?.content?.parts?.[0]?.text || 'No analysis available';
+
+    // Load existing data
+    let data = {};
+    try {
+      const fileContent = await fs.promises.readFile('./data.json', 'utf-8');
+      data = JSON.parse(fileContent);
+    } catch (err) {
+      console.log('Starting with new data.json...');
+    }
+
+    // Save in analysis
+    data.analysis = data.analysis || {};
+    data.analysis[key] = analysisText;
+
+    await fs.promises.writeFile('./data.json', JSON.stringify(data, null, 2));
+
+    res.json({ analysis: analysisText });
+  } catch (err) {
+    console.error('Gemini error:', err);
+    res.status(500).json({ error: 'AI Analysis failed' });
+  }
+});
 function execPromise(command) {
   return new Promise((resolve, reject) => {
     exec(command, (error, stdout, stderr) => {

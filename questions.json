@@ -1,63 +1,131 @@
 {
   "Know Yourself": [
     "Tell me about yourself.",
-    "Tell me about a project you're working on.",
-    "Give me a detailed explanation about your internship.",
-    "Tell me about your setbacks on projects.",
-    "Tell me about a time when you faced a difficult challenge.",
-    "Tell me about a project you're proud of."
+    "Tell me about a project you're proud of.",
+    "Give me a detailed explanation of an internship experience.",
+    "Tell me about a setback you faced during a project.",
+    "Tell me about a difficult challenge you handled."
+  ],
+
+  "Resume": [
+    "Walk me through how you developed the WordPress ad plugin during your internship.",
+    "How did you scale the Azure-backed quiz app to 400,000+ users? What were the key challenges?",
+    "How did integrating Kroop AI services improve your partner’s content generation?",
+    "Explain how you built and optimized the NodeBus blogging platform.",
+    "What major technical challenges did you face while building CourseOverflow?",
+    "Explain your decision to use Django and PostgreSQL for CourseOverflow backend.",
+    "How did you achieve 99.22% accuracy in your network anomaly detection project?",
+    "What optimizations helped reduce your training time by 80% in the ML project?",
+    "How would you redesign the partner dashboard backend today based on what you learned?",
+    "How did you implement authentication and authorization in NodeBus?",
+    "Tell me about the challenges of automating RSS feed ingestion using cron jobs.",
+    "Why did you choose Firebase as a backend service, and would you still recommend it?",
+    "How did you use Docker and Redis together in CourseOverflow?",
+    "Describe a REST API you designed and what design patterns you followed.",
+    "How did you integrate Google Ads and Analytics for high-scale traffic apps?",
+    "What trade-offs did you face optimizing cost and latency between GCP regions?"
   ],
   "Earn Trust, Have Backbone to Disagree and Commit": [
-    "Tell me about a situation where you had a conflict with someone on your team. What was it about? What did you do? How did they react? What was the outcome?",
-    "Tell me about a time when your teammate didn't agree with you. What did you do?",
-    "Received negative feedback from a manager and how you responded."
+    "Tell me about a time when you had a conflict with a teammate and how you resolved it.",
+    "Tell me about a time when you received negative feedback from a manager. How did you respond?",
+    "Describe a time when you had to stand up for an idea no one agreed with."
   ],
   "Ownership": [
-    "Give an example of when you saw a peer struggling and decided to step in and help. What was the situation and what actions did you take? What was the outcome?",
-    "Tell me about a time when you earned your teammate's trust.",
-    "Tell me about a time you had to help a team member struggling with a task.",
-    "How would you help a new employee who is facing technical difficulties?",
-    "Tell me about a time when you couldn't meet your deadline.",
-    "Tell me about a time you committed a mistake.",
-    "Have you ever failed at something? What did you learn from it?",
-    "Time when you helped someone grow in their career and it benefited them.",
-    "Time when you helped someone grow but it did not benefit them."
+    "Tell me about a time when you took ownership of a task beyond your responsibilities.",
+    "Tell me about a time you helped a struggling team member.",
+    "Tell me about a time you made a mistake. What did you learn?",
+    "Tell me about a time when you couldn't meet a deadline and how you handled it."
   ],
   "Invent and Simplify, Learn and Be Curious": [
-    "Tell me about a time when you invented something.",
-    "Tell me about a time when you came up with a novel solution.",
-    "Tell me about a time when you learned new technologies.",
-    "Tell me about a time when you innovated and exceeded expectations.",
-    "Tell me about a time when you thought of an unpopular idea."
+    "Tell me about a time when you invented or simplified a process.",
+    "Tell me about a time when you came up with a novel solution to a problem.",
+    "Tell me about a time you proactively learned a new technology to solve a problem."
   ],
-  "Ownership & Customer Obsession": [
-    "Tell me about a time when you went above and beyond your job responsibilities.",
-    "Tell me about a time when you were 75% through a project and realized you had the wrong goal."
+  "Customer Obsession": [
+    "Tell me about a time you went above and beyond to meet customer needs.",
+    "Tell me about a time when you failed to meet customer expectations and how you handled it."
   ],
   "Think Big": [
-    "Tell me about a time when your team members were not supporting something but you pushed for a more optimal solution.",
-    "Tell me about a time when you pushed back on a decision from management for better long-term benefits.",
-    "Tell me about a time when you failed to meet your commitment."
+    "Tell me about a time you pushed for a bold or risky idea.",
+    "Tell me about a time when you proposed a vision that led to a significant impact."
   ],
   "Bias for Action": [
-    "Tell me about a time you were working on a project with tight time constraints.",
-    "Tell me about a time you faced an obstacle and how you overcame it.",
-    "Tell me about a time you had to cut corners to meet a deadline."
+    "Tell me about a time when you took action quickly under time constraints.",
+    "Tell me about a time you had to act without having full information."
   ],
   "Are Right a Lot": [
-    "Tell me about a time when you had to make an important decision without any data.",
-    "Tell me about a time when you had to make a choice among a few options but didn’t have time to explore each one.",
-    "Tell me about a time you used judgment to make a decision with limited data.",
-    "Tell me about a time you had to make a tough decision without consulting anybody.",
-    "Tell me about a time you took a risk.",
-    "Tell me about a time you had multiple solutions and had to select the optimal one.",
-    "Tell me about a time when you had to make a decision based on limited information and how it impacted the outcome.",
-    "Tell me about a time you didn’t know something and how you tackled it."
+    "Tell me about a time when your judgment led to a good decision.",
+    "Tell me about a time you had to choose between multiple solutions and how you selected the best one.",
+    "Tell me about a time you were wrong and what you learned."
   ],
-  "Others": [
-    "Tell me about a time when you needed help from someone during a project.",
-    "Tell me about a time when you took a decision on your own without the manager's prior approval.",
-    "Tell me about a time when you faced a setback initially but still achieved the goal.",
-    "Tell me about a time when you felt under pressure and had to pivot at the last minute."
-  ]
+  "Dive Deep": [
+    "Tell me about a time when digging into the data helped you solve a problem.",
+    "Tell me about the most complex problem you've solved."
+  ],
+  "Frugality": [
+    "Tell me about a time you accomplished something with limited resources.",
+    "Tell me about a time when you had to be frugal to meet a goal."
+  ],
+  "Hire and Develop the Best": [
+    "Tell me about a time when you mentored someone and helped them grow.",
+    "What qualities do you look for in people when building a team?"
+  ],
+  "Insist on the Highest Standards": [
+    "Tell me about a time when you raised the quality bar on a project.",
+    "Tell me about a time you motivated others to meet higher standards."
+  ],
+  "Deliver Results": [
+    "Describe a challenging goal you achieved under pressure.",
+    "Tell me about a time when your persistence helped your team succeed."
+  ],
+  "Strive to be Earth's Best Employer": [
+    "Tell me about a time you built or contributed to a positive team environment.",
+    "Tell me about a time when you helped develop your team's strengths."
+  ],
+  "Success and Scale Bring Broad Responsibility": [
+    "Tell me about a time when you made a decision that had a broad positive impact.",
+    "Describe a time you handled an ethical dilemma at work."
+  ],
+"set2": [
+  "Tell me about a situation where you were assigned a critical task. Why was it critical, and how did you solve the challenges faced?",
+  "Describe a time when you had to complete a task from scratch. What approach did you take, and how did you accomplish it?",
+  "How do you handle deadlines? Have you ever missed one? If so, how did you manage the situation?",
+  "Tell me about a time when you went above and beyond to meet the needs of a customer.",
+  "Tell me about a time when you took ownership of a project or task and saw it through to completion despite challenges.",
+  "What do you think is needed to be an SDE1 at Amazon?",
+  "Tell me about the hardest problem you have solved.",
+  "Tell me about a time when you received critical feedback. How did you handle it?",
+  "Tell me about a time when you took a deep dive and how it helped you.",
+  "Have you ever fixed a critical issue? What was it and how did you resolve it?",
+  "How do you measure your success?",
+  "Have you done any innovative work? What was it and what was the impact?",
+  "Tell me about a time when you had to persuade your manager to change the course of action based on credible insights.",
+  "Tell me about a time you took a calculated risk. What was the situation and what was the outcome?",
+  "Describe a situation where you failed. How did you handle it, and what did you learn?",
+  "Tell me about a time when you had to implement something challenging.",
+  "Tell me about a time when you received critical feedback and how you worked upon it.",
+  "Tell me about a time when you had to deep dive into a subject matter.",
+  "Tell me about a time when you didn't know how to proceed. How did you figure it out, and how did you evaluate the options?",
+  "Tell me about a time when you improved upon your shortcomings.",
+  "Tell me about a time when you missed a deadline. What could you have done better?",
+  "How did you know you were implementing the right solution? What could you have done differently?",
+  "What’s the project you’re most proud of?",
+  "What’s the most complicated project you’ve worked on?",
+  "Tell me about a time you went above and beyond expectations.",
+  "When did you have to make an important decision quickly?",
+  "Tell me about the toughest decision you had to make in the past six months.",
+  "Tell me about an out-of-the-box idea or decision you made that had a big impact on the business.",
+  "When did you have to learn something new to do your job?",
+  "Tell me about a time you coached someone. What happened?",
+  "When were you able to remove a serious roadblock preventing your team from making progress?",
+  "Have you ever worked on a project that changed significantly while it was in progress?",
+  "Tell me about a difficult problem you had to solve. How did you analyze it?",
+  "When did you have to deal with a difficult stakeholder?",
+  "Tell me about a time you ran into a challenge on a project. How did you get past it?",
+  "Tell me about a time you had a disagreement with a colleague. How did you handle it?",
+  "Tell me about a mistake you made. What did you learn from it?",
+  "Tell me about a goal you failed to achieve. What would you do differently next time?",
+  "Tell me about a time you had an unhappy customer. What was the problem? What did you do to address it, and what was their reaction?",
+  "When did you receive negative feedback, and how did you respond to it?"
+]
 }

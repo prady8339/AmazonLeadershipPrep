@@ -289,278 +289,415 @@
 
   <div id="loader">Loading questions...</div>
   <div id="lp-container" style="display:none;"></div>
-  <script>
-    let savedNotes = {};
+<script>
+let savedNotes = {};
 
-    async function fetchNotes() {
-      const res = await fetch('/api/data');
-      savedNotes = await res.json();
-      if (!savedNotes.answers) savedNotes.answers = {};
-      if (!savedNotes.completed) savedNotes.completed = {};
-      if (!savedNotes.audio) savedNotes.audio = {};
-      if (!savedNotes.transcription) saveNotes.transcription = {};
-      console.log(savedNotes)
-    }
+async function fetchNotes() {
+  const res = await fetch('/api/data');
+  savedNotes = await res.json();
+  if (!savedNotes.answers) savedNotes.answers = {};
+  if (!savedNotes.completed) savedNotes.completed = {};
+  if (!savedNotes.audio) savedNotes.audio = {};
+  if (!savedNotes.transcription) savedNotes.transcription = {};
+  if (!savedNotes.analysis) savedNotes.analysis = {};
+}
 
-    async function saveNotes() {
-      await fetch('/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(savedNotes)
-      });
-    }
+async function saveNotes() {
+  await fetch('/api/data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(savedNotes)
+  });
+}
 
-    async function loadQuestionsAndRender() {
-      document.getElementById('loader').style.display = 'block';
-      document.getElementById('lp-container').style.display = 'none';
+function addPlaybackRateControl(audioElement) {
+  const rateSelector = document.createElement('select');
+  [1, 1.25, 1.5, 1.75, 2].forEach(rate => {
+    const option = document.createElement('option');
+    option.value = rate;
+    option.textContent = `${rate}x`;
+    if (rate === 1) option.selected = true;
+    rateSelector.appendChild(option);
+  });
 
-      await fetchNotes();
+  rateSelector.addEventListener('change', () => {
+    audioElement.playbackRate = parseFloat(rateSelector.value);
+  });
 
-      const res = await fetch('/api/questions');
-      const questions = await res.json();
-      const container = document.getElementById('lp-container');
-      container.innerHTML = '';
+  const wrapper = document.createElement('div');
+  wrapper.style.display = 'flex';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.gap = '10px';
+  wrapper.appendChild(audioElement);
+  wrapper.appendChild(rateSelector);
+  return wrapper;
+}
 
-      Object.entries(questions).forEach(([category, items]) => {
-        const section = document.createElement('section');
-        section.className = 'lp-section';
+function updateProgressBar(bar, total, done = null) {
+  const completed = done !== null
+    ? done
+    : Array.from(bar.closest('.lp-section').querySelectorAll('.question-item.completed')).length;
+  const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+  bar.style.setProperty('--percent', `${percent}%`);
+}
 
-        const title = document.createElement('h2');
-        title.className = 'lp-title';
+function showAnalysis(analysisData, container, key) {
+  let analysisBox = container.querySelector(`.analysis-box[data-key="${key}"]`);
 
-        const titleText = document.createElement('span');
-        titleText.textContent = `${category} (${items.length})`;
+  // Determine raw text content
+  const rawText = typeof analysisData === 'string'
+    ? analysisData
+    : analysisData.analysis || JSON.stringify(analysisData, null, 2);
 
-        const progress = document.createElement('div');
-        progress.className = 'progress-bar';
-        const progressInner = document.createElement('div');
-        progressInner.className = 'progress-inner';
-        progress.appendChild(progressInner);
+  // Create a div and allow basic HTML formatting (not <pre>)
+  const formattedHtml = rawText
+    .replace(/\n/g, '<br>')                          // Convert newlines to <br>
+    .replace(/\*(.*?)\*/g, '<strong>$1</strong>');
 
-        title.appendChild(titleText);
-        title.appendChild(progress);
+  if (!analysisBox) {
+    analysisBox = document.createElement('div');
+    analysisBox.className = 'analysis-box';
+    analysisBox.dataset.key = key;
+    analysisBox.style.border = '1px dashed #999';
+    analysisBox.style.background = '#f0f8ff';
+    analysisBox.style.padding = '10px';
+    analysisBox.style.marginTop = '10px';
+    analysisBox.style.borderRadius = '8px';
 
-        const content = document.createElement('div');
-        content.className = 'lp-content';
+    // Title div, acts as toggle button
+    const title = document.createElement('div');
+    title.textContent = '🧠 AI Feedback:';
+    title.style.fontWeight = 'bold';
+    title.style.marginBottom = '5px';
+    title.style.cursor = 'pointer';
+    title.style.userSelect = 'none';
 
-        let completedCount = 0;
+    // Content div, initially hidden
+    const content = document.createElement('div');
+    content.className = 'analysis-content';
+    content.innerHTML = formattedHtml;
+    content.style.display = 'none';
 
-        items.forEach((questionText, index) => {
-          const key = `${category}::${index}`;
-          const questionDiv = document.createElement('div');
-          questionDiv.className = 'question-item';
-          if (savedNotes.completed[key]) {
-            questionDiv.classList.add('completed');
-            completedCount++;
-          }
+    // Toggle content on title click
+    title.addEventListener('click', () => {
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+      } else {
+        content.style.display = 'none';
+      }
+    });
 
-          const p = document.createElement('p');
-          p.textContent = questionText;
+    analysisBox.appendChild(title);
+    analysisBox.appendChild(content);
+    container.appendChild(analysisBox);
+  } else {
+    const content = analysisBox.querySelector('.analysis-content');
+    content.innerHTML = formattedHtml;
+  }
+}
 
-          const textarea = document.createElement('textarea');
-          textarea.placeholder = 'Write your story here...';
-          textarea.value = savedNotes.answers?.[key] || '';
+async function loadQuestionsAndRender() {
+  document.getElementById('loader').style.display = 'block';
+  document.getElementById('lp-container').style.display = 'none';
 
-          const saveButton = document.createElement('button');
-          saveButton.textContent = 'Save Answer';
-          saveButton.className = 'save-btn';
-          saveButton.addEventListener('click', async () => {
-            savedNotes.answers[key] = textarea.value;
-            await saveNotes();
-            alert('Answer saved!');
-          });
+  await fetchNotes();
+  const res = await fetch('/api/questions');
+  const questions = await res.json();
+  const container = document.getElementById('lp-container');
+  container.innerHTML = '';
 
-          const markButton = document.createElement('button');
-          markButton.textContent = savedNotes.completed[key] ? 'Unmark' : 'Mark as Done';
-          markButton.className = 'mark-btn';
-          markButton.addEventListener('click', async () => {
-            const done = !savedNotes.completed[key];
-            savedNotes.completed[key] = done;
-            questionDiv.classList.toggle('completed', done);
-            markButton.textContent = done ? 'Unmark' : 'Mark as Done';
-            updateProgressBar(progressInner, section.querySelectorAll('.question-item').length);
-            await saveNotes();
-          });
+  Object.entries(questions).forEach(([category, items]) => {
+    const section = document.createElement('section');
+    section.className = 'lp-section';
 
-          // Container for record button and audio player
-          const audioControlsDiv = document.createElement('div');
-          audioControlsDiv.className = 'audio-controls';
-          audioControlsDiv.style.display = 'flex';
-          audioControlsDiv.style.gap = '10px'; // Space between record button and audio player
+    const title = document.createElement('h2');
+    title.className = 'lp-title';
 
-          // Microphone Record Button
-          const recordButton = document.createElement('button');
-          recordButton.textContent = '🎙️ Record';
-          recordButton.className = 'save-btn';
+    const titleText = document.createElement('span');
+    titleText.textContent = `${category} (${items.length})`;
 
-          let mediaRecorder;
-          let audioChunks = [];
-          let isRecording = false;
+    const progress = document.createElement('div');
+    progress.className = 'progress-bar';
+    const progressInner = document.createElement('div');
+    progressInner.className = 'progress-inner';
+    progress.appendChild(progressInner);
 
-          recordButton.addEventListener('click', async () => {
-            if (!isRecording) {
-              if (!navigator.mediaDevices) {
-                alert('Mic access not supported in this browser.');
-                return;
-              }
-              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-              mediaRecorder = new MediaRecorder(stream);
-              mediaRecorder.start();
-              isRecording = true;
-              recordButton.textContent = 'Stop ⏹️';
-              audioChunks = [];
+    title.appendChild(titleText);
+    title.appendChild(progress);
 
-              mediaRecorder.addEventListener('dataavailable', event => {
-                audioChunks.push(event.data);
-              });
+    const content = document.createElement('div');
+    content.className = 'lp-content';
 
-              mediaRecorder.addEventListener('stop', async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                const audioURL = URL.createObjectURL(audioBlob);
+    let completedCount = 0;
 
-                // Create preview player
-                const previewPlayer = document.createElement('audio');
-                previewPlayer.controls = true;
-                previewPlayer.src = audioURL;
+    items.forEach((questionText, index) => {
+      const key = `${category}::${index}`;
+      const questionDiv = document.createElement('div');
+      questionDiv.className = 'question-item';
+      if (savedNotes.completed[key]) {
+        questionDiv.classList.add('completed');
+        completedCount++;
+      }
 
-                const confirmDiv = document.createElement('div');
-                confirmDiv.style.display = 'flex';
-                confirmDiv.style.gap = '10px';
-                confirmDiv.style.marginTop = '10px';
+      const p = document.createElement('p');
+      p.textContent = questionText;
 
-                const acceptBtn = document.createElement('button');
-                acceptBtn.textContent = '✅ Accept';
-                acceptBtn.className = 'mark-btn';
+      const textarea = document.createElement('textarea');
+      textarea.placeholder = 'Write your story here...';
+      textarea.value = savedNotes.answers?.[key] || '';
 
-                const discardBtn = document.createElement('button');
-                discardBtn.textContent = '❌ Discard';
-                discardBtn.className = 'save-btn';
-
-                confirmDiv.appendChild(acceptBtn);
-                confirmDiv.appendChild(discardBtn);
-
-                // Insert player and buttons before record button
-                audioControlsDiv.insertBefore(previewPlayer, recordButton);
-                audioControlsDiv.insertBefore(confirmDiv, recordButton);
-
-                acceptBtn.addEventListener('click', async () => {
-                  const formData = new FormData();
-                  formData.append('audio', audioBlob, `${key}.webm`);
-                  const response = await fetch('/api/upload-audio', {
-                    method: 'POST',
-                    body: formData
-                  });
-                  const data = await response.json();
-                  savedNotes.audio = savedNotes.audio || {};
-                  savedNotes.audio[key] = data.path;
-                  await saveNotes();
-
-                  // Clean up UI
-                  previewPlayer.remove();
-                  confirmDiv.remove();
-
-                  // Show saved audio player
-                  const finalPlayer = document.createElement('audio');
-                  finalPlayer.controls = true;
-                  finalPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
-
-                  // Remove existing audio player if any
-                  const existingPlayer = audioControlsDiv.querySelector('audio');
-                  if (existingPlayer) existingPlayer.remove();
-
-                  audioControlsDiv.insertBefore(finalPlayer, recordButton);
-                });
-
-                discardBtn.addEventListener('click', () => {
-                  previewPlayer.remove();
-                  confirmDiv.remove();
-                });
-
-                recordButton.textContent = '🎙️ Record';
-                isRecording = false;
-              });
-            } else {
-              mediaRecorder.stop();
-            }
-          });
-
-          // If there's saved audio, show the audio player
-          if (savedNotes.audio?.[key]) {
-            const audioPlayer = document.createElement('audio');
-            audioPlayer.controls = true;
-            // Make sure to prepend the full URL to the saved audio path
-            audioPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
-            audioControlsDiv.appendChild(audioPlayer);
-          }
-
-          if (savedNotes.transcription?.[key]) {
-            const transcriptionDiv = document.createElement('div');
-            transcriptionDiv.className = 'transcription-box';
-            transcriptionDiv.style.border = '1px solid #ddd';
-            transcriptionDiv.style.borderRadius = '5px';
-            transcriptionDiv.style.padding = '10px';
-            transcriptionDiv.style.marginTop = '10px';
-            transcriptionDiv.style.backgroundColor = '#f9f9f9';
-            transcriptionDiv.style.maxHeight = '100px';
-            transcriptionDiv.style.overflowY = 'auto';
-
-            const transcriptionTitle = document.createElement('div');
-            transcriptionTitle.textContent = 'Transcription:';
-            transcriptionTitle.style.fontWeight = 'bold';
-            transcriptionTitle.style.marginBottom = '5px';
-
-            const transcriptionText = document.createElement('div');
-            transcriptionText.textContent = savedNotes.transcription[key];
-
-            transcriptionDiv.appendChild(transcriptionTitle);
-            transcriptionDiv.appendChild(transcriptionText);
-
-            // Create a container for the transcription
-            const transcriptionContainer = document.createElement('div');
-            transcriptionContainer.style.width = '100%';
-            transcriptionContainer.appendChild(transcriptionDiv);
-
-            // Add the transcription container after the audio controls
-            questionDiv.appendChild(transcriptionContainer, textarea);
-          }
-
-          // Append the record button to the audioControlsDiv
-          audioControlsDiv.appendChild(recordButton);
-
-          // Append the audioControlsDiv to the question div
-          questionDiv.appendChild(audioControlsDiv);
-          questionDiv.appendChild(p);
-          questionDiv.appendChild(textarea);
-          questionDiv.appendChild(saveButton);
-          questionDiv.appendChild(markButton);
-          content.appendChild(questionDiv);
-        });
-
-        section.appendChild(title);
-        section.appendChild(content);
-        container.appendChild(section);
-
-        updateProgressBar(progressInner, items.length, completedCount);
-
-        title.addEventListener('click', () => {
-          section.classList.toggle('open');
-        });
+      const saveButton = document.createElement('button');
+      saveButton.textContent = 'Save Answer';
+      saveButton.className = 'save-btn';
+      saveButton.addEventListener('click', async () => {
+        savedNotes.answers[key] = textarea.value;
+        await saveNotes();
+        alert('Answer saved!');
       });
 
-      document.getElementById('loader').style.display = 'none';
-      container.style.display = 'block';
-    }
+      const markButton = document.createElement('button');
+      markButton.textContent = savedNotes.completed[key] ? 'Unmark' : 'Mark as Done';
+      markButton.className = 'mark-btn';
+      markButton.addEventListener('click', async () => {
+        const done = !savedNotes.completed[key];
+        savedNotes.completed[key] = done;
+        questionDiv.classList.toggle('completed', done);
+        markButton.textContent = done ? 'Unmark' : 'Mark as Done';
+        updateProgressBar(progressInner, items.length);
+        await saveNotes();
+      });
 
-    function updateProgressBar(bar, total, done = null) {
-      const completed = done !== null
-        ? done
-        : Array.from(bar.closest('.lp-section').querySelectorAll('.question-item.completed')).length;
-      const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
-      bar.style.setProperty('--percent', `${percent}%`);
-    }
+      // Audio + Mic controls container
+      const audioControlsDiv = document.createElement('div');
+      audioControlsDiv.className = 'audio-controls';
+      audioControlsDiv.style.display = 'flex';
+      audioControlsDiv.style.gap = '10px';
+      audioControlsDiv.style.flexWrap = 'wrap';
 
-    loadQuestionsAndRender();
-  </script>
+      const recordButton = document.createElement('button');
+      recordButton.textContent = '🎙️ Record';
+      recordButton.className = 'save-btn';
+
+      let mediaRecorder;
+      let audioChunks = [];
+      let isRecording = false;
+
+      // Collapsible transcription box setup
+      const transcriptionBox = document.createElement('div');
+      transcriptionBox.className = 'transcription-box';
+      transcriptionBox.style.padding = '10px';
+      transcriptionBox.style.marginTop = '10px';
+      transcriptionBox.style.background = '#f9f9f9';
+      transcriptionBox.style.borderRadius = '6px';
+
+      const transcriptionTitle = document.createElement('div');
+      transcriptionTitle.textContent = '🎙️ Transcription:';
+      transcriptionTitle.style.fontWeight = 'bold';
+      transcriptionTitle.style.cursor = 'pointer';
+      transcriptionTitle.style.userSelect = 'none';
+      transcriptionTitle.style.marginBottom = '6px';
+
+      const transcriptionContent = document.createElement('div');
+      transcriptionContent.className = 'transcription-content';
+      transcriptionContent.style.whiteSpace = 'pre-wrap';
+      transcriptionContent.style.display = 'none';
+
+      transcriptionBox.appendChild(transcriptionTitle);
+      transcriptionBox.appendChild(transcriptionContent);
+
+      transcriptionTitle.addEventListener('click', () => {
+        if (transcriptionContent.style.display === 'none') {
+          transcriptionContent.style.display = 'block';
+        } else {
+          transcriptionContent.style.display = 'none';
+        }
+      });
+
+      recordButton.addEventListener('click', async () => {
+        if (!isRecording) {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            isRecording = true;
+            recordButton.textContent = 'Stop ⏹️';
+            audioChunks = [];
+
+            mediaRecorder.addEventListener('dataavailable', event => {
+              audioChunks.push(event.data);
+            });
+
+            mediaRecorder.addEventListener('stop', async () => {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+              const audioURL = URL.createObjectURL(audioBlob);
+
+              // Remove any existing preview & confirm UI
+              const existingPreview = audioControlsDiv.querySelector('audio');
+              if (existingPreview) existingPreview.remove();
+              const existingConfirm = audioControlsDiv.querySelector('.confirm-div');
+              if (existingConfirm) existingConfirm.remove();
+
+              const previewPlayer = document.createElement('audio');
+              previewPlayer.controls = true;
+              previewPlayer.src = audioURL;
+
+              const confirmDiv = document.createElement('div');
+              confirmDiv.className = 'confirm-div';
+              confirmDiv.style.display = 'flex';
+              confirmDiv.style.gap = '10px';
+              confirmDiv.style.alignItems = 'center';
+
+              const acceptBtn = document.createElement('button');
+              acceptBtn.textContent = '✅ Accept';
+              acceptBtn.className = 'mark-btn';
+
+              const discardBtn = document.createElement('button');
+              discardBtn.textContent = '❌ Discard';
+              discardBtn.className = 'save-btn';
+
+              confirmDiv.appendChild(acceptBtn);
+              confirmDiv.appendChild(discardBtn);
+
+              audioControlsDiv.insertBefore(previewPlayer, recordButton);
+              audioControlsDiv.insertBefore(confirmDiv, recordButton);
+
+              acceptBtn.addEventListener('click', async () => {
+                // Upload audio to backend
+                const formData = new FormData();
+                formData.append('audio', audioBlob, `${key}.webm`);
+                const response = await fetch('/api/upload-audio', {
+                  method: 'POST',
+                  body: formData
+                });
+                if (!response.ok) {
+                  alert('Audio upload failed');
+                  return;
+                }
+                const data = await response.json();
+                savedNotes.audio[key] = data.path;
+                await saveNotes();
+
+                // Remove preview & confirm UI
+                previewPlayer.remove();
+                confirmDiv.remove();
+
+                // Show audio player with playback rate control
+                const finalPlayer = document.createElement('audio');
+                finalPlayer.controls = true;
+                finalPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
+                const playerWithRate = addPlaybackRateControl(finalPlayer);
+                audioControlsDiv.insertBefore(playerWithRate, recordButton);
+
+                // Automatically trigger transcription fetch
+                transcriptionContent.textContent = 'Fetching transcription...';
+                const transResp = await fetch('/api/transcription?audioPath=' + encodeURIComponent(savedNotes.audio[key]));
+                if (!transResp.ok) {
+                  transcriptionContent.textContent = '[Failed to get transcription]';
+                  return;
+                }
+                const transData = await transResp.json();
+                savedNotes.transcription[key] = transData.text || '[No transcription]';
+                await saveNotes();
+
+                // Update transcription UI (append if not already)
+                if (!transcriptionBox.parentNode) questionDiv.appendChild(transcriptionBox);
+                transcriptionContent.textContent = savedNotes.transcription[key];
+              });
+
+              discardBtn.addEventListener('click', () => {
+                previewPlayer.remove();
+                confirmDiv.remove();
+              });
+
+              recordButton.textContent = '🎙️ Record';
+              isRecording = false;
+            });
+          } catch (err) {
+            alert('Error accessing microphone: ' + err.message);
+          }
+        } else {
+          mediaRecorder.stop();
+        }
+      });
+
+      // Show saved audio player if exists
+      if (savedNotes.audio?.[key]) {
+        const audioPlayer = document.createElement('audio');
+        audioPlayer.controls = true;
+        audioPlayer.src = `http://localhost:3000${savedNotes.audio[key]}`;
+        const playerWithRate = addPlaybackRateControl(audioPlayer);
+        audioControlsDiv.appendChild(playerWithRate);
+
+        if (savedNotes.transcription?.[key]) {
+          transcriptionContent.textContent = savedNotes.transcription[key];
+          if (!transcriptionBox.parentNode) questionDiv.appendChild(transcriptionBox);
+        }
+      }
+
+      audioControlsDiv.appendChild(recordButton);
+
+      // AI Analyze Button
+      const analyzeButton = document.createElement('button');
+      analyzeButton.textContent = '🧠 AI Analyze';
+      analyzeButton.className = 'save-btn';
+
+      analyzeButton.addEventListener('click', async () => {
+        const transcription = savedNotes.transcription?.[key];
+        if (!transcription) {
+          alert('Please record and transcribe an answer first.');
+          return;
+        }
+
+        analyzeButton.disabled = true;
+        analyzeButton.textContent = 'Analyzing...';
+
+        try {
+          const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: questionText, key: key, answer: transcription })
+          });
+          if (!response.ok) throw new Error('Analysis failed');
+          const result = await response.json();
+          savedNotes.analysis[key] = result;
+          await saveNotes();
+          showAnalysis(result, questionDiv, key);
+        } catch (e) {
+          alert(e.message);
+        } finally {
+          analyzeButton.disabled = false;
+          analyzeButton.textContent = '🧠 AI Analyze';
+        }
+      });
+
+      // Show existing AI analysis if available
+      if (savedNotes.analysis?.[key]) {
+        showAnalysis(savedNotes.analysis[key], questionDiv, key);
+      }
+
+      questionDiv.appendChild(p);
+      questionDiv.appendChild(textarea);
+      questionDiv.appendChild(saveButton);
+      questionDiv.appendChild(markButton);
+      questionDiv.appendChild(audioControlsDiv);
+      questionDiv.appendChild(analyzeButton);
+      content.appendChild(questionDiv);
+    });
+
+    section.appendChild(title);
+    section.appendChild(content);
+    container.appendChild(section);
+
+    updateProgressBar(progressInner, items.length, completedCount);
+    title.addEventListener('click', () => section.classList.toggle('open'));
+  });
+
+  document.getElementById('loader').style.display = 'none';
+  container.style.display = 'block';
+}
+
+loadQuestionsAndRender();
+</script>
 
 </body>
 
